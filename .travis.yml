@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t codyoakes/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true codyoakes/react-test npm test
+
+after_success:
+  - docker build -t codyoakes/multi-client ./client
+  - docker build -t codyoakes/multi-nginx ./nginx
+  - docker build -t codyoakes/multi-server ./server
+  - docker build -t codyoakes/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push codyoakes/multi-client
+  - docker push codyoakes/multi-nginx
+  - docker push codyoakes/multi-server
+  - docker push codyoakes/multi-worker
